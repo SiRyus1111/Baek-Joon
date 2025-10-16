@@ -5,9 +5,6 @@ public class boj1463 {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         int n = Integer.parseInt(br.readLine());
         arr = new int[n+1];
-        for(int i=0;i<=n;i++){
-            arr[i] = Integer.MAX_VALUE;
-        }
         arr[1] = 0;
         System.out.println(one(n));
     }
@@ -15,10 +12,10 @@ public class boj1463 {
         if(n==1){
             return 0;
         }
-        if(arr[n]!=Integer.MAX_VALUE){
+        if(arr[n]!=0){
             return arr[n];
         }
-        arr[n] = arr[n-1]+1;
+        arr[n] = one(n-1)+1;
         if(n%3==0){
             arr[n] = Math.min(arr[n],one(n/3)+1);
         }
@@ -28,3 +25,4 @@ public class boj1463 {
         return arr[n];
     }
 }
+
