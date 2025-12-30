@@ -36,3 +36,4 @@ def quick_sort(arr,start,end):
         arr[r], arr[l] = arr[l], arr[r]
     quick_sort(arr, start, r - 1)
     quick_sort(arr, r + 1, end)
+#엘렐렐레
