@@ -3,7 +3,7 @@
 // 권장 시간 복잡도 : 노드(V) = 최대 800개, 간선(E) = 최대 200000개
 // 다익스트라 알고리즘의 시간복잡도 = O(E log V)로는 200000 log 800이고,
 // 시간 제한이 1초 = 약 1억번의 계산 가능 이므로, 다익스트라로 충분히 풀 수 있다.
-// 가중치는 최대 1000, 간선 = 최대 200000개이므로 1000 * 200000 200000000 = 2억이므로 int형을 써도 된다. int형은 최대 21억.
+// 가중치는 최대 1000, 간선 = 최대 200000개이므로 1000 * 200000 = 200000000 = 2억이므로 int형을 써도 된다. int형은 최대 21억.
 
 // 발상 :
 // 그냥 시작 지점이랑 두 정점(v1, v2)에서 다익스트라를 돌려서
@@ -24,7 +24,7 @@
 
 const int MAX_VALUE = 1 << 30; // INF라고 쓰는게 편했는데 깜빡하고 MAX_VALUE 써버림.. 자바가 어렴풋이 기억이 났나봐.
 
-std::vector<int> dist(int node_num, std::vector<std::vector<std::pair<int, int>>>& graph){
+std::vector<int> dist(int node_num, const std::vector<std::vector<std::pair<int, int>>>& graph){ // graph는 딱 읽기 작업만 하기 때문에 그걸 명시하고자 const를 넣었다.
     
     // 전체 노드 갯수. 나중에 +1할텐데 왜 -1을 했냐면, 전체 노드 갯수라는 것을 의미한다는걸 확실히 할려고 했다.
     // -1을 안하면 값이 전체 노드 갯수 +1이 되므로..
@@ -96,10 +96,15 @@ int main(){
     // 디버깅 포인트 = 애초에 간선이 0개인 경우도 입력으로 들어올 수도 있으므로 
     // 이 코드를 그대로 실행하면 아예 graph에 아무런 노드의 간선 정보도 들어가지 않는다.
     // 그래서 간선이 0개인 경우에 대한 예외처리를 추가로 했다.
+    /* 
     if (e == 0){
         std::cout << -1;
         return 0;
     }
+    */
+    // 추가 = 이거 필요 없었음..
+    // 결국 문제는 MAX_VALUE가 여러번 더해질 떄 오버플로우가 나는 문제였음.
+    // 단순히 e == 0인 케이스에 대해 예외처리하는건 근본적인 문제를 해결하는건 아니었음.
 
     // 이 vector는 
     // 맨 바깥의 vector의 인덱스 = 노드 번호
@@ -129,18 +134,32 @@ int main(){
     std::vector<int> v1_dist = dist(v1, graph);
     std::vector<int> v2_dist = dist(v2, graph);
 
-    // 두 지점을 지나는 최단 경로 구하기
-    int path1 = start_dist[v1] + v1_dist[v2] + v2_dist[v];
-    int path2 = start_dist[v2] + v2_dist[v1] + v1_dist[v];
+    // 디버깅 포인트..
+    // e == 0 판별 때 말한 오버플로우를 방지하고자 && 연산자를 이용해서 각각의 최단 경로가 도달 가능한지 판별한다.
+    // 도달 가능 여부 확인하기
+    bool path1_valid = 
+    start_dist[v1] < MAX_VALUE &&
+    v1_dist[v2] < MAX_VALUE &&
+    v2_dist[v] < MAX_VALUE;
 
-    // 그중 최단 경로 구하기
-    int shortest_path = std::min(path1, path2);
+    bool path2_valid =
+    start_dist[v2] < MAX_VALUE &&
+    v2_dist[v1] < MAX_VALUE &&
+    v1_dist[v] < MAX_VALUE;
+
+    // 두 지점을 지나는 최단 경로 구하기
+    int shortest_path = MAX_VALUE;
+    if (path1_valid) {
+        shortest_path = std::min(shortest_path, start_dist[v1] + v1_dist[v2] + v2_dist[v]);
+    }
+    if (path2_valid) {
+        shortest_path = std::min(shortest_path, start_dist[v2] + v2_dist[v1] + v1_dist[v]);
+    }
 
     // 만약 도착 지점에 도달할 수 없다면 -1 출력
     // 노드 두 개일 때 두 노드가 연결이 안되어 MAX_VALUE가 나오는 경우까지 고려
-    if (shortest_path >= MAX_VALUE){
+    if (shortest_path == MAX_VALUE){
         std::cout << -1;
-        
     }
     // 도달할 수 있다면 최단 경로 출력
     else{
