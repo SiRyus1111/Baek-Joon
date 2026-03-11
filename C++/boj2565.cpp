@@ -6,16 +6,39 @@
 // 일일히 전깃줄 하나하나, 전봇대 번호 하나하나 탐색할 때 100 * 500 = 50000번의 연산 필요함.
 // = 1초에 1억번 연산이라고 가정하면 O(N^3)까지도 가능.
 
-#include <iostream>
-#include <vector>
-#include <algorithm>
+// 발상 : 
+// 이 문제는 정석적인 LIS(Longest Incresing Subsequence) 문제이다.
+// 결국 전선이 교차하지 않게 최소 갯수의 전선을 뺀다는 것은 최대한 전선을 많이 남겨놓는 것과 같다.
+// 그렇다면, 전선이 교차하지 않는다는 조건을 만족할 때의 가장 긴 부분 수열의 길이는
+// 최대한 전선을 많이 남겨놓는 것
+// 이나 다름이 없다.
 
-struct pole{
+// 그래서 이 문제의 핵심은 이것이다.
+// "어떻게 전선을 교체하지 않는다는 조건을 구현해야할까?"
+
+// 그 방법은 일단 전봇대 A의(물론 B를 기준으로 삼아도 된다) 
+// 각각의 전깃줄의 위치를 기준으로 오름차순으로 입력받은 전선들을 정렬한 후,
+// 계속 현재 전선보다 이전의 전선들을 살펴보면서
+// 이전의 전선의 B에 연결되어있는 위치의 값을 보고
+// 현재의 전선의 B에 연결되어있는 위치의 값보다 크다면 
+// 교차되어있는 것으로 판단하는 식으로 구현을 한다.
+// 이미 전봇대 A를 기준으로 전선들이 정렬되어있으므로 
+// 전봇대 A는 무조건 A에 연결되있는 위치가 이전의 전선의 값보다 현재의 전선의 값이 클 수밖에 없다.
+// 그러므로 교차되어있는 것은 B의 이전의 전선의 B에 연결되어있는 위치의 값이
+// 현재의 전선의 B에 연결되어있는 위치의 값보다 큰 경우이다.
+
+// 솔직히 이건 그림을 그리면 이해하기 쉽다.
+
+#include <iostream> // 표준 입출력
+#include <vector> // vector
+#include <algorithm> // max(), sort()
+
+struct wire{ // 구조체로 각각의 전선 구현
     int A_pole = 0;
     int B_pole = 0;
 };
 
-bool compare(pole A, pole B){
+bool compare(wire A, wire B){ // 전봇대 A를 기준으로 오름차순 정렬할 때 사용하는 함수
     return A.A_pole < B.A_pole;
 }
 
@@ -23,13 +46,18 @@ int main(){
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
 
+    // 전선의 수 입력받기
     int n;
     std::cin >> n;
 
-    std::vector<pole> poles(n);
+    // 전선들을 저장할 poles vector. 전선의 수만큼 vector의 길이 설정.
+    std::vector<wire> poles(n);
 
+    // 최대 부분 수열 길이를 저장할 dp vector. 
+    // 모든 인덱스를 1로 초기화. 일단 자기자신만으로 최대 부분 수열 길이가 1이기 때문.
     std::vector<int> dp(n, 1);
 
+    // 전선들 입력받기
     for (int i = 0; i < n; i++){
         int a, b;
 
@@ -39,23 +67,31 @@ int main(){
         poles[i].B_pole = b;
     }
 
+    // 전봇대 A를 기준으로 오름차순 정렬
     // 디버깅 포인트
     // 밑의 dp vector 갱신 문제를 고쳤는데도 그저 dp vector가 갱신만 될 뿐 아예 이상한 값이 나왔다.
     // 애초에 이 로직이 poles vector가 A_pole을 기준으로 오름차순 정렬되어있다는 가정 하에 만들어진 로직이라서,
     // 이렇게 정렬을 해줘야했다.
     std::sort(poles.begin(), poles.end(), compare);
 
+
+    // i = 지금까지의 가장 긴 증가하는 부분 수열을 구할 인덱스 번호
     for (int i = 1; i < n; i++){
+        // j = 이전의 전선들을 탐색할 용도의 인덱스 번호
         for (int j = 0; j < i; j++){
 
+            // 이전의 전선들을 탐색할 때 전선이 교차하지 않는지 확인하는 조건문
             // 최적화 포인트
-            // 원래는 이 if문의 조건이 이랬다. 두 전선이 교차하는지 아닌지 판별하기 위해서 만든 조건식이다.
+            // 원래는 이 if문의 조건이 이랬다.
             // !(poles[i].A_pole > poles[j].A_pole && poles[i].B_pole < poles[j].B_pole) || (poles[i].A_pole < poles[j].A_pole && poles[i].B_pole > poles[j].B_pole)
+            // 두 전선이 교차하는지 아닌지 판별하기 위해서 만든 조건식이다.
             // 하지만 이미 A_pole에 대해 오름차순 정렬 되어있으므로, 그저 B_pole이 교차하는지만 보면 된다. 이렇게 복잡한 조건식을 쓸 필요가 없다.
             if (poles[i].B_pole > poles[j].B_pole){
+
+                // 지금까지의 가장 긴 증가하는 부분수열인지 확인.
                 // 디버깅 포인트
                 // 처음에 dp vector가 갱신이 안되어서 여기서 cout로 출력을 해봄으로써 위의 if문이 정상적이라는 것을 확인했다.
-                // 하지만 dp vector가 갱신이 안 되었기 때문에 아래의 if문이 비정상적이었다고 생각해서, 결국 문제를 찾아냈다.
+                // 하지만 dp vector가 갱신이 안 되었기 때문에 아래의 max() 함수가 비정상적이었다고 생각해서, 결국 문제를 찾아냈다.
                 // dp[i] = std::max(dp[i], dp[j]);
                 // 이렇게 dp[i] = 현재의 전선 수와 이전의 전선 수 중에 더 큰 것
                 // 으로 하고있었다.. 실제로는 dp[i]는 dp[j]의 다음 단계가 되므로 dp[i]와 dp[j] + 1을 비교해야한다.
@@ -65,7 +101,10 @@ int main(){
         }
     }
 
+    // 가장 긴 증가하는 부분 수열의 길이를 저장할 변수
     int max_amount = 0;
+
+    // 가장 긴 증가하는 부분 수열을 dp vector를 순회하며 찾기
     // 디버깅 포인트
     // 원래는 반복문이 
     // for (int i = 1; i < n; i++)
@@ -79,6 +118,10 @@ int main(){
         max_amount = std::max(dp[i], max_amount);
     }
 
+    // 출력
+    // 문제에서 요구하는게 
+    // 최소 몇 개의 전선을 제거해야하는지ㅣ임므로
+    // 전체 갯수 - 남길 수 있는 최대 갯수(가장 긴 증가하는 부분수열의 길이)를 출력해야한다.
     std::cout << (n - max_amount);
 }
 
