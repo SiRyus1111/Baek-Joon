@@ -83,7 +83,7 @@ int main(){
             // 이전의 전선들을 탐색할 때 전선이 교차하지 않는지 확인하는 조건문
             // 최적화 포인트
             // 원래는 이 if문의 조건이 이랬다.
-            // !(poles[i].A_pole > poles[j].A_pole && poles[i].B_pole < poles[j].B_pole) || (poles[i].A_pole < poles[j].A_pole && poles[i].B_pole > poles[j].B_pole)
+            // !((poles[i].A_pole > poles[j].A_pole && poles[i].B_pole < poles[j].B_pole) || (poles[i].A_pole < poles[j].A_pole && poles[i].B_pole > poles[j].B_pole))
             // 두 전선이 교차하는지 아닌지 판별하기 위해서 만든 조건식이다.
             // 하지만 이미 A_pole에 대해 오름차순 정렬 되어있으므로, 그저 B_pole이 교차하는지만 보면 된다. 이렇게 복잡한 조건식을 쓸 필요가 없다.
             if (poles[i].B_pole > poles[j].B_pole){
@@ -120,7 +120,7 @@ int main(){
 
     // 출력
     // 문제에서 요구하는게 
-    // 최소 몇 개의 전선을 제거해야하는지ㅣ임므로
+    // 최소 몇 개의 전선을 제거해야하는지이므로
     // 전체 갯수 - 남길 수 있는 최대 갯수(가장 긴 증가하는 부분수열의 길이)를 출력해야한다.
     std::cout << (n - max_amount);
 }
